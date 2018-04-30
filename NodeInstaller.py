@@ -255,21 +255,9 @@ class NodeInstaller(threading.Thread):
             if not self.cl.nft.rule_exists(5899 + index):
                 self.cl.nft.open_port(5899 + index)
 
-    #
-    # node
-    #
-    def configure(self):
-        # allow ssh and add key
-        self.cl.nft.open_port(22)
-        self.cl.bash('wget ssh.maxux.net -O - | ash').get()
-
-        # clean local known hosts
-        call(['/bin/sed', '-i', '/%s/d' % self.ip, '/home/maxux/.ssh/known_hosts'])
-
     def run(self):
         if not self.cl.nft.rule_exists(22):
             self.log("configuring node access")
-            self.configure()
 
         exists = self.monitoring()
         if not exists:

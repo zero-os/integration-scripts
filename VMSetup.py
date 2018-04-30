@@ -1,3 +1,4 @@
+from js9 import j
 import threading
 
 class VMSetup(threading.Thread):
@@ -9,20 +10,19 @@ class VMSetup(threading.Thread):
 
         x = self.address.split('.')
         self.vmname = "node.%s.vm-%02d" % (x[3], port - 1000)
-        self._prefab = None
+        self._sshclient = None
 
     def run(self):
-        self.prefab.core.file_write('/tmp/ssh-inside.sh', self.script)
-        self.prefab.core.run('bash -x /tmp/ssh-inside.sh %s' % self.vmname)
+        self.sshclient.execute('echo {script} > /tmp/ssh-inside.sh'.format(script=self.script))
+        self.sshclient.execute('bash -x /tmp/ssh-inside.sh %s' % self.vmname)
         self.logger.log("%s: done" % self.vmname)
     
     @property
-    def prefab(self):
-        if not self._prefab:
+    def sshclient(self):
+        if not self._sshclient:
             sshkeyname = j.tools.configmanager.keyname
-            sshclient = j.client.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname)
-            self._prefab = sshclient.executor().prefab
-        return self._prefab
+            self._sshclient = j.clients.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname)
+        return self._sshclient
 
     @property
     def script(self):
@@ -103,20 +103,6 @@ mkdir -p /mnt/benchmark
 umount /mnt/benchmark || true
 mkfs.ext4 $dsk
 mount $dsk /mnt/benchmark
-
-# for disk in /dev/vd*; do
-#     mkdir -p /mnt/ssd-$id
-#     umount /mnt/ssd-$id || true
-#
-#     mkfs.ext4 $disk
-#     mount $disk /mnt/ssd-$id
-#
-#     echo "[job-$id]" >> /root/fiofile
-#     echo "directory=/mnt/ssd-$id" >> /root/fiofile
-#     echo "" >> /root/fiofile
-#
-#    id=$(($id + 1))
-# done
 
 # preallocate benchmark datafile
 fio --create_only=1 /root/fiofile-read

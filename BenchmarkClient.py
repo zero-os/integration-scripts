@@ -32,7 +32,7 @@ class BenchmarkClient(JSConfigBase):
 
     @property
     def node_ips(self):
-        return [node.config.data['host'] for node in self.nodes]
+        return [node.addr for node in self.nodes]
     
     @property
     def sshkeyname(self):
@@ -40,27 +40,27 @@ class BenchmarkClient(JSConfigBase):
 
     def _get_all_nodes(self):
         instances = j.clients.zero_os.list()
-        nodes = [j.clients.zero_os.get(instance) for instance in instances]
+        nodes = [j.clients.zero_os.sal.get_node(instance) for instance in instances]
         return nodes
     
     def reboot(self):
         for node in self.nodes:
-            self.logger.debug("rebooting node {}".format(node.config.data['host']))
-            node.bash("reboot")
+            self.logger.debug("rebooting node {}".format(node.addr))
+            node.reboot()
 
     def prepare(self):
         sshkey = j.clients.sshkey.get(self.sshkeyname)
         pubkey = sshkey.pubkey
         for node in self.nodes:
             self.logger.debug("preparing node {}".format(node.config.data['host']))
-            install = NodeInstaller(node, sshkey.pubkey, self.amount)
+            install = NodeInstaller(node.client, sshkey.pubkey, self.amount)
             install.start()
 
     def setupVMs(self):
         for i in range(1, self.amount + 1):
             port = 1000 + i
 
-            self.logger.log("creating hosts configuration: vm-port-%d" % port)
+            self.logger.debug("creating hosts configuration: vm-port-%d" % port)
             for ip in self.node_ips:
                 VMSetup(ip, port).start()
 
@@ -78,6 +78,6 @@ class BenchmarkClient(JSConfigBase):
     def nodes_wait(self):
         self.logger.debug("waiting for nodes to come alive")
         for node in self.nodes:
-            while not node.running():
+            while not node.is_running():
                 sleep(1)
         return

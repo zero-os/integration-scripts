@@ -1,3 +1,4 @@
+from js9 import j
 import threading
 
 class Benchmark(threading.Thread):
@@ -9,20 +10,19 @@ class Benchmark(threading.Thread):
 
         x = self.address.split('.')
         self.vmname = "node.%s.vm-%02d" % (x[3], port - 1000)
-        self._prefab = None
+        self._sshclient = None
 
     def run(self):
-        self.prefab.core.upload('run-benchmark.sh', '/tmp/run-benchmark.sh')
+        self.sshclient.execute('ech {script} > /tmp/run-benchmark.sh'.format(script=self.script))
         self.prefab.core.run('bash /tmp/run-benchmark.sh')
         self.logger.log("%s: done" % self.vmname)
     
     @property
-    def prefab(self):
-        if not self._prefab:
+    def sshclient(self):
+        if not self._sshclient:
             sshkeyname = j.tools.configmanager.keyname
-            sshclient = j.client.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname)
-            self._prefab = sshclient.executor().prefab
-        return self._prefab
+            self._sshclient = j.clients.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname)
+        return self._sshclient
 
     @property
     def script(self):
