@@ -2,7 +2,7 @@ import threading
 from subprocess import call
 
 class NodeInstaller(threading.Thread):
-    def __init__(self, node, sshkey, amount):
+    def __init__(self, node, sshkey, amount, host):
         threading.Thread.__init__(self)
 
         self.node = node
@@ -10,6 +10,7 @@ class NodeInstaller(threading.Thread):
         self.sshkey = sshkey
         self.ip = node.config.data['host']
         self.amount = amount
+        self.host = host
     
 
     #
@@ -44,7 +45,7 @@ class NodeInstaller(threading.Thread):
         ).get()
 
         cn = self.cl.container.client(int(cni))
-        cn.system("/bin/rtinfo-client --disk sd --host 10.1.0.2")
+        cn.system("/bin/rtinfo-client --disk sd --host {host}".format(host=self.host))
 
     def monitoring(self):
         rti = self.cl.container.find('rtinfo')

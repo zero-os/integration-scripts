@@ -13,15 +13,14 @@ class Benchmark(threading.Thread):
         self._sshclient = None
 
     def run(self):
-        self.sshclient.execute('ech {script} > /tmp/run-benchmark.sh'.format(script=self.script))
-        self.prefab.core.run('bash /tmp/run-benchmark.sh')
-        self.logger.log("%s: done" % self.vmname)
+        self.sshclient.execute('echo {script} > /tmp/run-benchmark.sh'.format(script=self.script))
+        self.sshclient.execute('bash /tmp/run-benchmark.sh')
     
     @property
     def sshclient(self):
         if not self._sshclient:
             sshkeyname = j.tools.configmanager.keyname
-            self._sshclient = j.clients.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname)
+            self._sshclient = j.clients.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname, timeout=240)
         return self._sshclient
 
     @property

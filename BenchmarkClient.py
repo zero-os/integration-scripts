@@ -8,6 +8,7 @@ from time import sleep
 TEMPLATE = """
 ips = "all"
 amount = 16
+host = "10.1.0.2"
 """
 
 JSConfigBase = j.tools.configmanager.base_class_config
@@ -51,27 +52,43 @@ class BenchmarkClient(JSConfigBase):
     def prepare(self):
         sshkey = j.clients.sshkey.get(self.sshkeyname)
         pubkey = sshkey.pubkey
+        installers = []
         for node in self.nodes:
-            self.logger.debug("preparing node {}".format(node.config.data['host']))
+            self.logger.debug("preparing node {}".format(node.addr))
             install = NodeInstaller(node.client, sshkey.pubkey, self.amount)
             install.start()
+            installers.append(install)
+
+        for installer in installers:
+            installer.join()
 
     def setupVMs(self):
+        installers = []
         for i in range(1, self.amount + 1):
             port = 1000 + i
 
             self.logger.debug("creating hosts configuration: vm-port-%d" % port)
             for ip in self.node_ips:
-                VMSetup(ip, port).start()
+                installer = VMSetup(ip, port)
+                installer.start()
+                installers.append(installer)
+
+        for installer in installers:
+            installer.join()    
 
     def benchhmark_run(self):
+        installers = []
         for i in range(1, self.amount + 1):
             port = 1000 + i
     
-            self.logger.log("running benchmark on: vm-port-%d" % port)
+            self.logger.debug("running benchmark on: vm-port-%d" % port)
             for ip in self.node_ips:
-                Benchmark(ip, port).start()
-
+                installer = Benchmark(ip, port)
+                installer.start()
+                installers.append(installer)
+                
+        for installer in installers:
+            installer.join()    
     def print_summary(self):
         Summary(self.node_ips)
     
@@ -80,4 +97,5 @@ class BenchmarkClient(JSConfigBase):
         for node in self.nodes:
             while not node.is_running():
                 sleep(1)
+            self.logger.log("{} is running".format(node.addr))
         return

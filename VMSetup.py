@@ -15,7 +15,6 @@ class VMSetup(threading.Thread):
     def run(self):
         self.sshclient.execute('echo {script} > /tmp/ssh-inside.sh'.format(script=self.script))
         self.sshclient.execute('bash -x /tmp/ssh-inside.sh %s' % self.vmname)
-        self.logger.log("%s: done" % self.vmname)
     
     @property
     def sshclient(self):

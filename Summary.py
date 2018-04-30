@@ -5,21 +5,21 @@ class Summary():
     def __init__(self, nodes):
         data = []
         for target in nodes:
-            data.append(summary(target))
+            data.append(self.summary(target))
     
-        cluster(data)
+        self.cluster(data)
 
-    def emptyval():
+    def emptyval(self):
         return {
             'linear': {'read': 0, 'write': 0, 'rbw': 0, 'wbw': 0},
             'random': {'read': 0, 'write': 0, 'rbw': 0, 'wbw': 0}
         }
 
-    def cluster(data):
-        fs = emptyval()
+    def cluster(self, data):
+        fs = self.emptyval()
 
         for result in data:
-            node = emptyval()
+            node = self.emptyval()
 
             for value in result:
                 node['linear']['read'] += value['read']['read']
@@ -50,7 +50,7 @@ class Summary():
         print("[+] cluster linear: read [{:,} iops], write [{:,} iops]".format(fs['linear']['read'], fs['linear']['write']))
         print("[+] cluster random: read [{:,} iops], write [{:,} iops]".format(fs['random']['read'], fs['random']['write']))
 
-    def report(cl, vm, filename):
+    def report(self, cl, vm, filename):
         fullpath = "/mnt/vms/%s/tmp/%s" % (vm['uuid'], filename)
 
         # fd = cl.filesystem.open(fullpath)
@@ -62,7 +62,7 @@ class Summary():
         # return data.decode('utf-8').split("\n")
         return data.split("\n")
 
-    def iops(lines):
+    def iops(self, lines):
         iops = {'read': None, 'write': None, 'rbw': None, 'wbw': None}
 
         for line in lines:
@@ -81,7 +81,7 @@ class Summary():
 
         return iops
 
-    def summary(target):
+    def summary(self, target):
         print("[+] connecting node: %s" % target)
         cl = Client(target, timeout=1800)
 
@@ -91,14 +91,14 @@ class Summary():
 
         print("[+] analyzing reports contents")
         for vm in vms:
-            vmread = report(cl, vm, "benchmark-result-read")
-            vmwrite = report(cl, vm, "benchmark-result-write")
-            vmrand = report(cl, vm, "benchmark-result-rand")
+            vmread = self.report(cl, vm, "benchmark-result-read")
+            vmwrite = self.report(cl, vm, "benchmark-result-write")
+            vmrand = self.report(cl, vm, "benchmark-result-rand")
 
             values = {
-                'read': iops(vmread),
-                'write': iops(vmwrite),
-                'random': iops(vmrand)
+                'read': self.iops(vmread),
+                'write': self.iops(vmwrite),
+                'random': self.iops(vmrand)
             }
 
             results.append(values)
