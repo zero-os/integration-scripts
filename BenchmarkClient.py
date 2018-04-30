@@ -86,7 +86,7 @@ class BenchmarkClient(JSConfigBase):
                 installer = Benchmark(ip, port)
                 installer.start()
                 installers.append(installer)
-                
+
         for installer in installers:
             installer.join()    
     def print_summary(self):
@@ -97,5 +97,5 @@ class BenchmarkClient(JSConfigBase):
         for node in self.nodes:
             while not node.is_running():
                 sleep(1)
-            self.logger.log("{} is running".format(node.addr))
+            self.logger.debug("{} is running".format(node.addr))
         return
