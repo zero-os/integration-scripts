@@ -21,6 +21,7 @@ class BenchmarkClient(JSConfigBase):
         self.ips = self.config.data['ips']
         self.amount = self.config.data['amount']
         self._nodes = None
+        self.host = self.config.data['host']
     
     @property
     def nodes(self):
@@ -55,7 +56,7 @@ class BenchmarkClient(JSConfigBase):
         installers = []
         for node in self.nodes:
             self.logger.debug("preparing node {}".format(node.addr))
-            install = NodeInstaller(node.client, sshkey.pubkey, self.amount)
+            install = NodeInstaller(node.client, sshkey.pubkey, self.amount, self.host)
             install.start()
             installers.append(install)
 
