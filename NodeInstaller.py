@@ -193,7 +193,7 @@ class NodeInstaller(threading.Thread):
         cn.bash('apt-get install -y wget redis-tools').get()
 
         self.log("seting up zdb-manager ssh")
-        cn.bash('wget http://ssh.maxux.net/ -O - | bash').get()
+        cn.bash('echo {sshkey} >> /root/.ssh/authorized_keys'.format(sshkey=self.sshkey)).get()
         cn.bash('dpkg-reconfigure openssh-server').get()
         cn.bash('/etc/init.d/ssh start').get()
         cn.bash('chmod 600 /root/.ssh/*').get()
@@ -241,7 +241,7 @@ class NodeInstaller(threading.Thread):
             self.log("machine-%d: authorizing ssh" % index)
             self.cl.filesystem.mkdir("/mnt/vms/%s/root/.ssh" % uid)
             
-            self.cl.bash('echo {sshkey} /mnt/vms/{uid}/root/.ssh/authorized_keys'.format(sshkey=self.sshkey, uid=uid)).get()
+            self.cl.bash('echo {sshkey} >> /mnt/vms/{uid}/root/.ssh/authorized_keys'.format(sshkey=self.sshkey, uid=uid)).get()
             self.cl.bash('chmod 600 /mnt/vms/%s/root/.ssh/authorized_keys' % uid).get()
 
             # setting up vm
