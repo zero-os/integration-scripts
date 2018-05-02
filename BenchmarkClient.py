@@ -25,6 +25,12 @@ class BenchmarkClient(JSConfigBase):
     
     @property
     def nodes(self):
+        """list of targeted nodes
+        
+        :return: list of nodes
+        :rtype: zero_os client list
+        """
+
         if not self._nodes:
             if self.ips.casefold() == 'all':
                 self._nodes = self._get_all_nodes()
@@ -46,11 +52,19 @@ class BenchmarkClient(JSConfigBase):
         return nodes
     
     def reboot(self):
+        """ reboot all targeted nodes
+        
+        """
+
         for node in self.nodes:
             self.logger.debug("rebooting node {}".format(node.addr))
             node.reboot()
 
     def prepare(self):
+        """prebare targeted nodes
+        
+        """
+
         sshkey = j.clients.sshkey.get(self.sshkeyname)
         pubkey = sshkey.pubkey
         installers = []
@@ -64,6 +78,10 @@ class BenchmarkClient(JSConfigBase):
             installer.join()
 
     def setupVMs(self):
+        """ creating vms
+        
+        """
+
         installers = []
         for i in range(1, self.amount + 1):
             port = 1000 + i
@@ -78,6 +96,10 @@ class BenchmarkClient(JSConfigBase):
             installer.join()    
 
     def benchhmark_run(self):
+        """run benchmark on the created vms
+        
+        """
+
         installers = []
         for i in range(1, self.amount + 1):
             port = 1000 + i
@@ -89,7 +111,8 @@ class BenchmarkClient(JSConfigBase):
                 installers.append(installer)
 
         for installer in installers:
-            installer.join()    
+            installer.join()
+            
     def print_summary(self):
         Summary(self.node_ips)
     
