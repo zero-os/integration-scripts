@@ -210,7 +210,7 @@ class NodeInstaller(threading.Thread):
     def vmachine(self):
         self.log("starting virtual machines")
         blocksize = '4k'
-        rootfs = 'https://hub.gig.tech/gig-bootable/ubuntu-xenial-bootable-sshd.flist'
+        rootfs = 'https://hub.gig.tech/gig-bootable/ubuntu:16.04.flist'
         amount = self.amount
         endpoints = self.zdbs()
         manager = self.zdbm()
