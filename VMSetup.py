@@ -20,7 +20,7 @@ class VMSetup(threading.Thread):
     def sshclient(self):
         if not self._sshclient:
             sshkeyname = j.tools.configmanager.keyname
-            self._sshclient = j.clients.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname)
+            self._sshclient = j.clients.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname, timeout=240)
         return self._sshclient
 
     @property
