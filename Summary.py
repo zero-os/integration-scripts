@@ -52,14 +52,13 @@ class Summary():
 
     def report(self, cl, vm, filename):
         fullpath = "/mnt/vms/%s/tmp/%s" % (vm['uuid'], filename)
+        
+        while True:
+            x = cl.bash('cat %s' % fullpath).get()
+            data = x.stdout
+            if '(all jobs)' in data:
+                break
 
-        # fd = cl.filesystem.open(fullpath)
-        # data = cl.filesystem.read(fd)
-        # cl.filesystem.close(fd)
-        x = cl.bash('cat %s' % fullpath).get()
-        data = x.stdout
-
-        # return data.decode('utf-8').split("\n")
         return data.split("\n")
 
     def iops(self, lines):
