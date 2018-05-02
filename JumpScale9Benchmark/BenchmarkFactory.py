@@ -1,5 +1,5 @@
 from js9 import j
-from BenchmarkClient import BenchmarkClient
+from .BenchmarkClient import BenchmarkClient
 
 JSConfigBase = j.tools.configmanager.base_class_configs
 

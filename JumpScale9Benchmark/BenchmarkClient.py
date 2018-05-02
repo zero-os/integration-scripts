@@ -1,8 +1,8 @@
 from js9 import j
-from NodeInstaller import NodeInstaller
-from VMSetup import VMSetup
-from Benchmark import Benchmark
-from Summary import Summary
+from .NodeInstaller import NodeInstaller
+from .VMSetup import VMSetup
+from .Benchmark import Benchmark
+from .Summary import Summary
 from time import sleep
 
 TEMPLATE = """
