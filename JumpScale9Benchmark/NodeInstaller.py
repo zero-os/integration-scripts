@@ -1,5 +1,4 @@
 import threading
-from subprocess import call
 
 class NodeInstaller(threading.Thread):
     def __init__(self, node, sshkey, amount, host):
@@ -11,7 +10,9 @@ class NodeInstaller(threading.Thread):
         self.ip = node.config.data['host']
         self.amount = amount
         self.host = host
-    
+
+        self.node.logger.setLevel(20)
+
 
     #
     # threading
@@ -241,7 +242,7 @@ class NodeInstaller(threading.Thread):
 
             self.log("machine-%d: authorizing ssh" % index)
             self.cl.filesystem.mkdir("/mnt/vms/%s/root/.ssh" % uid)
-            
+
             self.cl.bash('echo {sshkey} >> /mnt/vms/{uid}/root/.ssh/authorized_keys'.format(sshkey=self.sshkey, uid=uid)).get()
             self.cl.bash('chmod 600 /mnt/vms/%s/root/.ssh/authorized_keys' % uid).get()
 

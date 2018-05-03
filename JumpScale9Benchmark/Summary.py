@@ -1,12 +1,14 @@
-from zeroos.core0.client import Client
-from subprocess import call
+from js9 import j
+
 class Summary():
 
     def __init__(self, nodes):
+        self.logger = j.logger.get("cluster.summary")
+
         data = []
         for target in nodes:
             data.append(self.summary(target))
-    
+
         self.cluster(data)
 
     def emptyval(self):
@@ -35,24 +37,24 @@ class Summary():
             nl = node['linear']
             nr = node['random']
 
-            print("[+] node linear: read [{:,} iops], write [{:,} iops]".format(nl['read'], nl['write']))
-            print("[+] node linear: read [%.1f KB/s], write [%.1f KB/s]" % (nl['rbw'], nl['wbw']))
+            self.logger.debug("node linear: read [{:,} iops], write [{:,} iops]".format(nl['read'], nl['write']))
+            self.logger.debug("node linear: read [%.1f KB/s], write [%.1f KB/s]" % (nl['rbw'], nl['wbw']))
 
-            print("[+] node random: read [{:,} iops], write [{:,} iops]".format(nr['read'], nr['write']))
-            print("[+] node random: read [%.1f KB/s], write [%.1f KB/s]" % (nr['rbw'], nr['wbw']))
+            self.logger.debug("node random: read [{:,} iops], write [{:,} iops]".format(nr['read'], nr['write']))
+            self.logger.debug("node random: read [%.1f KB/s], write [%.1f KB/s]" % (nr['rbw'], nr['wbw']))
 
             fs['linear']['read'] += nl['read']
             fs['linear']['write'] += nl['write']
             fs['random']['read'] += nr['read']
             fs['random']['write'] += nr['write']
 
-        print("[+] ------------------------------------")
-        print("[+] cluster linear: read [{:,} iops], write [{:,} iops]".format(fs['linear']['read'], fs['linear']['write']))
-        print("[+] cluster random: read [{:,} iops], write [{:,} iops]".format(fs['random']['read'], fs['random']['write']))
+        self.logger.info("---------------------------")
+        self.logger.info("cluster linear: read [{:,} iops], write [{:,} iops]".format(fs['linear']['read'], fs['linear']['write']))
+        self.logger.info("cluster random: read [{:,} iops], write [{:,} iops]".format(fs['random']['read'], fs['random']['write']))
 
     def report(self, cl, vm, filename):
         fullpath = "/mnt/vms/%s/tmp/%s" % (vm['uuid'], filename)
-        
+
         while True:
             x = cl.bash('cat %s' % fullpath).get()
             data = x.stdout
@@ -81,14 +83,13 @@ class Summary():
         return iops
 
     def summary(self, target):
-        print("[+] connecting node: %s" % target)
-        cl = Client(target, timeout=1800)
+        cl = target.client
 
-        print("[+] loading virtual machines list")
+        cl.logger.debug("loading virtual machines list")
         results = []
         vms = cl.kvm.list()
 
-        print("[+] analyzing reports contents")
+        cl.logger.info("analyzing virtual machines reports")
         for vm in vms:
             vmread = self.report(cl, vm, "benchmark-result-read")
             vmwrite = self.report(cl, vm, "benchmark-result-write")
