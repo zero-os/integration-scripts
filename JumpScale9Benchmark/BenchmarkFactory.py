@@ -14,7 +14,8 @@ class BenchmarkFactory(JSConfigBase):
         self.__jslocation__ = "j.tools.benchmark"
         JSConfigBase.__init__(self, BenchmarkClient)
 
-    
+        j.logger.handlers_level_set(20)
+
     def test(self):
         nodes = [
             '192.168.193.232',
@@ -28,10 +29,13 @@ class BenchmarkFactory(JSConfigBase):
             '192.168.193.56',
             '192.168.193.132',
         ]
+
+        self.logger.info("initializing benchmark")
+
         # create zero_os client instances for each ip
         for node in nodes:
             j.clients.zero_os.get(instance=node, data={'host':node})
-        
+
         client = self.get('test',data={"amount":16, "host":"10.1.0.2", "ips":"all"})
         # reboot all nodes
         client.reboot()
