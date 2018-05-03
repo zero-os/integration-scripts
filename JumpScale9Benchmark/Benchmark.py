@@ -13,22 +13,14 @@ class Benchmark(threading.Thread):
         self._sshclient = None
 
     def run(self):
-        self.sshclient.execute('echo {script} > /tmp/run-benchmark.sh'.format(script=self.script))
-        self.sshclient.execute('bash /tmp/run-benchmark.sh')
-    
+        self.sshclient.execute('fio /root/fiofile-read > /tmp/benchmark-result-read')
+        self.sshclient.execute('fio /root/fiofile-write > /tmp/benchmark-result-write')
+        self.sshclient.execute('fio /root/fiofile-rand > /tmp/benchmark-result-rand')
+
     @property
     def sshclient(self):
         if not self._sshclient:
             sshkeyname = j.tools.configmanager.keyname
             self._sshclient = j.clients.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname, timeout=240)
+
         return self._sshclient
-
-    @property
-    def script(self):
-        return """
-#!/bin/bash
-
-fio /root/fiofile-read > /tmp/benchmark-result-read
-fio /root/fiofile-write > /tmp/benchmark-result-write
-fio /root/fiofile-rand > /tmp/benchmark-result-rand
-"""
