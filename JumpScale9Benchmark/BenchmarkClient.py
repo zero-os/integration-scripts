@@ -22,11 +22,11 @@ class BenchmarkClient(JSConfigBase):
         self.amount = self.config.data['amount']
         self._nodes = None
         self.host = self.config.data['host']
-    
+
     @property
     def nodes(self):
         """list of targeted nodes
-        
+
         :return: list of nodes
         :rtype: zero_os client list
         """
@@ -41,7 +41,7 @@ class BenchmarkClient(JSConfigBase):
     @property
     def node_ips(self):
         return [node.addr for node in self.nodes]
-    
+
     @property
     def sshkeyname(self):
         return j.tools.configmanager.keyname
@@ -58,26 +58,30 @@ class BenchmarkClient(JSConfigBase):
         instances = j.clients.zero_os.list()
         nodes = [j.clients.zero_os.sal.get_node(instance) for instance in instances]
         return nodes
-    
+
     def reboot(self):
-        """ reboot all targeted nodes
-        
+        """
+        reboot all targeted nodes
         """
 
+        self.logger.info("rebooting nodes")
         for node in self.nodes:
             self.logger.debug("rebooting node {}".format(node.addr))
             node.reboot()
 
+        # waiting effective reboot
+        sleep(3)
+
     def prepare(self):
-        """prebare targeted nodes
-        
+        """
+        prepare targeted nodes
         """
 
         sshkey = j.clients.sshkey.get(self.sshkeyname)
         pubkey = sshkey.pubkey
         installers = []
         for node in self.nodes:
-            self.logger.debug("preparing node {}".format(node.addr))
+            self.logger.info("preparing node {}".format(node.addr))
             install = NodeInstaller(node.client, sshkey.pubkey, self.amount, self.host)
             install.start()
             installers.append(install)
@@ -86,33 +90,33 @@ class BenchmarkClient(JSConfigBase):
             installer.join()
 
     def setupVMs(self):
-        """ creating vms
-        
+        """
+        creating vms
         """
 
         installers = []
         for i in range(1, self.amount + 1):
             port = 1000 + i
 
-            self.logger.debug("creating hosts configuration: vm-port-%d" % port)
+            self.logger.info("creating hosts configuration: vm-port-%d" % port)
             for ip in self.node_ips:
                 installer = VMSetup(ip, port)
                 installer.start()
                 installers.append(installer)
 
         for installer in installers:
-            installer.join()    
+            installer.join()
 
     def benchhmark_run(self):
-        """run benchmark on the created vms
-        
+        """
+        run benchmark on the created vms
         """
 
         installers = []
         for i in range(1, self.amount + 1):
             port = 1000 + i
-    
-            self.logger.debug("running benchmark on: vm-port-%d" % port)
+
+            self.logger.info("running benchmark on all nodes: vm-port-%d" % port)
             for ip in self.node_ips:
                 installer = Benchmark(ip, port)
                 installer.start()
@@ -120,14 +124,16 @@ class BenchmarkClient(JSConfigBase):
 
         for installer in installers:
             installer.join()
-            
+
     def print_summary(self):
-        Summary(self.node_ips)
-    
+        Summary(self.nodes)
+
     def nodes_wait(self):
-        self.logger.debug("waiting for nodes to come alive")
+        self.logger.info("waiting for nodes to come alive")
+
         for node in self.nodes:
             while not node.is_running():
                 sleep(1)
-            self.logger.debug("{} is running".format(node.addr))
+            self.logger.info("{} is reachable".format(node.addr))
+
         return
