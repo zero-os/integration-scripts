@@ -6,7 +6,7 @@ from .Summary import Summary
 from time import sleep
 
 TEMPLATE = """
-ips = "all"
+nodes = "all"
 amount = 16
 host = "10.1.0.2"
 """
@@ -18,7 +18,7 @@ class BenchmarkClient(JSConfigBase):
     def __init__(self, instance, data={}, parent=None, interactive=False):
         JSConfigBase.__init__(self, instance=instance, data=data,
                               parent=parent, template=TEMPLATE, interactive=interactive)
-        self.ips = self.config.data['ips']
+        self.instances = self.config.data['nodes']
         self.amount = self.config.data['amount']
         self._nodes = None
         self.host = self.config.data['host']
@@ -32,10 +32,10 @@ class BenchmarkClient(JSConfigBase):
         """
 
         if not self._nodes:
-            if self.ips.casefold() == 'all':
+            if self.instances.casefold() == 'all':
                 self._nodes = self._get_all_nodes()
-            #else:
-                #TODO: get nodes from ips list comma separated
+            else:
+                self._nodes = self._get_nodes_from_list()
         return self._nodes
 
     @property
@@ -45,6 +45,14 @@ class BenchmarkClient(JSConfigBase):
     @property
     def sshkeyname(self):
         return j.tools.configmanager.keyname
+
+    def _get_nodes_from_list(self):
+        nodes = []
+        instances = [instance.strip() for instance in self.instances.split(',')]
+        for instance in instances:
+            if j.clients.zero_os.exists(instance):
+                nodes.append(j.clients.zero_os.sal.get_node(instance))
+        return nodes
 
     def _get_all_nodes(self):
         instances = j.clients.zero_os.list()
