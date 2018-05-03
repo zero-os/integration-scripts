@@ -1,5 +1,11 @@
 from js9 import j
 import threading
+import time
+
+# gevent fix
+import gevent.hub
+gevent.hub.Hub.backend = "poll"
+
 
 class VMSetup(threading.Thread):
     def __init__(self, address, port):
@@ -13,14 +19,18 @@ class VMSetup(threading.Thread):
         self._sshclient = None
 
     def run(self):
-        self.sshclient.execute('echo {script} > /tmp/ssh-inside.sh'.format(script=self.script))
-        self.sshclient.execute('bash -x /tmp/ssh-inside.sh %s' % self.vmname)
-    
+        time.sleep(0.2 * (self.port - 1000))
+
+        # temporary fix
+        self.sshclient.execute("wget https://gist.githubusercontent.com/maxux/07d9243698162421c324f51d145952e2/raw/163122299979d26c4d300390632256e5bd1113d9/ssh-inside.sh -O /tmp/ssh-inside.sh 2>&1 | grep saved")
+        self.sshclient.execute("bash /tmp/ssh-inside.sh %s 2>&1 | grep '\[.\]'" % self.vmname)
+
     @property
     def sshclient(self):
         if not self._sshclient:
             sshkeyname = j.tools.configmanager.keyname
             self._sshclient = j.clients.ssh.new(self.address, port=self.port, instance=self.vmname, keyname=sshkeyname, timeout=240)
+
         return self._sshclient
 
     @property
@@ -31,9 +41,6 @@ class VMSetup(threading.Thread):
 
 # set hostname if provided
 [[ ! -z $1 ]] && hostname "$1"
-
-# dumb vm with wrong sources filename
-[[ -e /etc/apt/source.list ]] && mv /etc/apt/source.list /etc/apt/sources.list
 
 # rtinfo vm
 if [ ! -e /tmp/rtinfo-client-static-x64 ]; then
